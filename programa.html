@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Laboratorios Externos &amp; Convenios - Selección de Programa (U.INCCA)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <link href="assets/css/programa-styles.css" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif']
+          },
+          colors: {
+            incca: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              200: '#bae0fd',
+              300: '#7cc7fb',
+              400: '#36abf7',
+              500: '#0c8fe9',
+              600: '#0070c7',
+              700: '#0159a2',
+              800: '#064b85',
+              900: '#0b3f6f',
+              950: '#07284a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="relative min-h-screen bg-white text-black flex flex-col justify-between p-6 md:p-10 lg:p-12 font-sans"
+  style="background: #ffffff !important; color: #000000 !important;">
+  <!-- Contenido Principal -->
+  <div class="relative z-10 max-w-7xl mx-auto w-full flex flex-col items-center">
+    <!-- Barra Superior de Navegación Rápida (Sin Header Complejo) -->
+    <div class="w-full flex items-center justify-between mb-8 md:mb-12"><a
+        class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-white text-black font-semibold text-sm border-2 border-black hover:bg-black hover:text-white transition-colors duration-150"
+        href="index.html"><i class="fa-solid fa-arrow-left text-xs"></i><span>Volver</span></a>
+      <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-lg bg-white border-2 border-black"><span
+          class="w-2.5 h-2.5 rounded-full bg-black border border-black"></span><span
+          class="text-xs font-bold text-black tracking-wide uppercase">Red de Convenios &amp; Plataformas Externas •
+          Acceso Remoto</span></div>
+    </div>
+    <!-- Encabezado Central -->
+    <div class="text-center max-w-3xl mx-auto mb-10 md:mb-14">
+      <div
+        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white border-2 border-black text-black text-xs font-bold uppercase tracking-wider mb-4">
+        <i class="fa-solid fa-network-wired text-black"></i><span>Convenios Interinstitucionales, Simuladores &amp;
+          Nube</span></div>
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-black leading-tight mb-4">
+        Laboratorios <span class="underline decoration-black decoration-4 underline-offset-8">Externos</span></h1>
+      <p class="text-black text-base sm:text-lg font-medium leading-relaxed">Plataformas, simuladores en la nube y
+        bancos experimentales operados por <strong class="font-bold text-black">entidades aliadas, redes académicas y
+          convenios internacionales</strong>. Selecciona tu programa para acceder a las herramientas externas
+        autorizadas.</p>
+    </div>
+    <!-- Grilla de Tarjetas de Programas (derivada de window.name, sin fetch propio) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7 w-full" id="programsGrid">
+      <p class="col-span-full text-center text-black font-semibold text-sm py-8" id="programsLoading">Cargando
+        programas…</p>
+    </div>
+    <!-- Indicador de confianza y convenios al pie (discreto, sin footer estructural) -->
+    <div
+      class="mt-12 text-center text-xs font-bold text-black flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border-2 border-black bg-white">
+      <i class="fa-solid fa-shield-halved text-black"></i><span>Plataformas externas con autenticación y licenciamiento
+        gestionado por convenios interinstitucionales • 2025</span></div>
+  </div>
+  <!-- Construcción dinámica de tarjetas de Programas + envío de datos al catálogo por window.name -->
+  <script src="assets/js/programa-main.js"></script>
+</body>
+
+</html>

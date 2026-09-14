@@ -1,0 +1,849 @@
+/* ==========================================================================
+   Visor genérico — CSS escrito a mano, sin dependencias ni frameworks.
+   Look monocromo (blanco/negro, bordes 2px, tipografía mono para etiquetas),
+   con layout responsive por grid-template-columns + media queries. No
+   depende de ningún módulo del proyecto: solo estiliza lo que main.js
+   genera a partir del JSON recibido por window.name.
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  color: #000000;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+:focus-visible {
+  outline: 3px solid #0c8fe9;
+  outline-offset: 2px;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* -------------------------------------------------------------------------
+   Estado sin JavaScript
+   ------------------------------------------------------------------------- */
+
+.noscript-full {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  background: #ffffff;
+  color: #000000;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------------------------
+   Estructura general
+   ------------------------------------------------------------------------- */
+
+.app-shell {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+@media (min-width: 640px) {
+  .app-shell {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    padding-top: 2.5rem;
+  }
+}
+
+.topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #000000;
+}
+
+@media (min-width: 640px) {
+  .topbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.topbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar__back:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.topbar__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* -------------------------------------------------------------------------
+   Encabezado / hero
+   ------------------------------------------------------------------------- */
+
+.hero {
+  text-align: center;
+  max-width: 48rem;
+  margin: 0 auto 2.5rem;
+}
+
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .hero h1 {
+    font-size: 3rem;
+  }
+}
+
+.hero p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  font-weight: 500;
+  margin: 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+}
+
+@media (min-width: 768px) {
+  .hero p {
+    font-size: 1rem;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Barra de filtros por categoría
+   ------------------------------------------------------------------------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-btn:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.filter-btn.is-active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.filter-btn__count {
+  margin-left: 0.375rem;
+  padding: 0 0.3rem;
+  border: 1px solid currentColor;
+}
+
+/* -------------------------------------------------------------------------
+   Grilla de laboratorios
+   ------------------------------------------------------------------------- */
+
+.labs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .labs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .labs-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.state-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2.5rem 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+/* -------------------------------------------------------------------------
+   Tarjeta de laboratorio
+   ------------------------------------------------------------------------- */
+
+.lab-card {
+  background: #ffffff;
+  border: 2px solid #000000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.lab-card:hover {
+  background: #fafafa;
+}
+
+.lab-card__thumb {
+  position: relative;
+  height: 12rem;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  overflow: hidden;
+}
+
+.lab-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #ffffff;
+}
+
+.lab-card__placeholder {
+  width: 100%;
+  height: 100%;
+  border: 2px dashed #000000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #ffffff;
+  text-align: center;
+}
+
+.lab-card__placeholder .material-symbols-outlined {
+  font-size: 2.25rem;
+}
+
+.lab-card__placeholder span.label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lab-card__origin-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid #000000;
+  background: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lab-card__view-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid #000000;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lab-card__view-badge .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.lab-card__body {
+  padding: 1.25rem;
+}
+
+.lab-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.lab-card__category {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid #000000;
+}
+
+.lab-card__tag {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.lab-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0.5rem 0;
+}
+
+.lab-card__desc {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lab-card__footer {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.lab-card__footer-inner {
+  padding-top: 0.75rem;
+  border-top: 1px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.lab-card:hover .lab-card__footer-inner .lab-card__explore {
+  text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------
+   Tarjetas de colección (pantalla 1: elegir Externos / Vivos / Propios)
+   ------------------------------------------------------------------------- */
+
+.collection-card {
+  background: #ffffff;
+  border: 2px solid #000000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem;
+}
+
+.collection-card__icon {
+  width: 3rem;
+  height: 3rem;
+  border: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.collection-card__icon .material-symbols-outlined {
+  font-size: 1.5rem;
+}
+
+.collection-card__badge {
+  float: right;
+  padding: 0.25rem 0.6rem;
+  border: 2px solid #000000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.collection-card__badge--solid {
+  background: #000000;
+  color: #ffffff;
+}
+
+.collection-card__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
+}
+
+.collection-card__desc {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  margin: 0 0 1.5rem;
+}
+
+.collection-card__footer {
+  padding-top: 1rem;
+  border-top: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.collection-card__count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.collection-card__count .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.collection-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: #000000;
+}
+
+.collection-card__cta:hover {
+  text-decoration: underline;
+}
+
+.collection-card--inactive {
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+.collection-card__cta--disabled {
+  color: #000000;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.collection-card--inactive .collection-card__cta--disabled:hover {
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------
+   Pie de la página
+   ------------------------------------------------------------------------- */
+
+.app-footer {
+  margin-top: 3rem;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-top: 2px solid #000000;
+  padding-top: 1.5rem;
+}
+
+/* -------------------------------------------------------------------------
+   Modal / ficha del laboratorio
+   ------------------------------------------------------------------------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+}
+
+.modal-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: none;
+}
+
+.modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 42rem;
+  background: #ffffff;
+  border: 2px solid #000000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+  box-shadow: 8px 8px 0 0 rgba(0, 0, 0, 1);
+}
+
+.modal-header {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 2px solid #000000;
+  padding: 1rem;
+  flex-shrink: 0;
+}
+
+.modal-header__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-header__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.modal-badge {
+  padding: 0.125rem 0.5rem;
+  border: 1px solid #000000;
+  text-transform: uppercase;
+}
+
+.modal-badge--solid {
+  background: #000000;
+  color: #ffffff;
+}
+
+.modal-badge--outline {
+  background: #ffffff;
+  color: #000000;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .modal-title {
+    font-size: 1.5rem;
+  }
+}
+
+.modal-close {
+  padding: 0.375rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  line-height: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.modal-close:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.modal-visual {
+  margin-top: 1rem;
+  border: 2px dashed #000000;
+  padding: 1rem;
+  text-align: center;
+  background: #ffffff;
+}
+
+.modal-visual--image {
+  border-style: solid;
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-visual__frame {
+  height: 14rem;
+  background: #ffffff;
+}
+
+.modal-visual__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.modal-visual__label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.modal-visual__caption {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: #000000;
+}
+
+.modal-visual--image .modal-visual__caption {
+  padding: 0.5rem 0;
+  border-top: 2px solid #000000;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-left: 1px solid #000000;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #000000;
+}
+
+.modal-section h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-bottom: 0.25rem;
+  margin: 0 0 0.5rem;
+  border-bottom: 1px solid #000000;
+}
+
+.modal-section p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #000000;
+  background: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  border: 2px solid #000000;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.fact {
+  padding: 0 0.5rem;
+}
+
+.fact + .fact {
+  border-left: 1px solid #000000;
+}
+
+.fact__label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fact__value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.modal-footer {
+  padding: 1rem;
+  border-top: 2px solid #000000;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-outline:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------
+   Accesibilidad de movimiento
+   ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
