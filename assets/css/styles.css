@@ -686,6 +686,20 @@ img {
   overflow: hidden;
 }
 
+.modal-visual--video {
+  border-style: solid;
+  padding: 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.modal-visual--video iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+}
+
 .modal-visual__frame {
   height: 14rem;
   background: #ffffff;
@@ -835,6 +849,42 @@ img {
 .btn-outline:hover {
   background: #000000;
   color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------
+   Página individual de un laboratorio vivo (video.html)
+   ------------------------------------------------------------------------- */
+
+.video-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 56rem;
+  margin: 0 auto 2.5rem;
+}
+
+.video-page__player {
+  margin-top: 0;
+}
+
+.video-page__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.video-page__title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .video-page__title {
+    font-size: 2.25rem;
+  }
 }
 
 /* -------------------------------------------------------------------------

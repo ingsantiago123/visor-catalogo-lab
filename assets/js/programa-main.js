@@ -7,10 +7,54 @@
 // la cadena real): se DERIVA acá mismo, recorriendo el campo "Programa(s)"
 // de cada laboratorio y sacando los valores únicos.
 //
+// Esta misma pantalla sirve tanto a Externos como a Vivos: ?coleccion=vivo
+// en la URL (lo pone visor/index.html al armar el link "Ingresar" de la
+// tarjeta Vivos) hace que acá se filtre el array por tipo:'vivo' en vez de
+// tipo:'externo', y que el payload armado para catalogo.html tenga items
+// tipo:'vivo' en vez de tipo:'laboratorio'. Los laboratorios históricos de
+// Datos/General-labs.json no traen 'tipo' — se tratan como 'externo' por
+// compatibilidad (ver README.md).
+//
 // Recién al elegir un programa se arma el JSON con el contrato de datos del
 // visor (ver visor-instrucciones.md) y se deja en window.name antes de
 // navegar a catalogo.html — ese archivo (el "visor puro") tampoco toca la
 // red nunca.
+
+const COLECCION = new URLSearchParams(location.search).get('coleccion') === 'vivo' ? 'vivo' : 'externo';
+
+const TEXTOS_COLECCION = {
+  externo: {
+    tituloDoc: 'Laboratorios Externos & Convenios - Selección de Programa (U.INCCA)',
+    topBadgeTexto: 'Red de Convenios & Plataformas Externas • Acceso Remoto',
+    heroBadgeIcono: 'fa-network-wired',
+    heroBadgeTexto: 'Convenios Interinstitucionales, Simuladores & Nube',
+    heroTituloPalabra: 'Externos',
+    heroDescripcion: 'Plataformas, simuladores en la nube y bancos experimentales operados por entidades aliadas, redes académicas y convenios internacionales. Selecciona tu programa para acceder a las herramientas externas autorizadas.',
+    trustTexto: 'Plataformas externas con autenticación y licenciamiento gestionado por convenios interinstitucionales • 2025'
+  },
+  vivo: {
+    tituloDoc: 'Laboratorios Vivos - Selección de Programa (U.INCCA)',
+    topBadgeTexto: 'Videoteca de Prácticas de Laboratorio • Consulta Asincrónica',
+    heroBadgeIcono: 'fa-video',
+    heroBadgeTexto: 'Videoteca de Prácticas · Estudio Asincrónico',
+    heroTituloPalabra: 'Vivos',
+    heroDescripcion: 'Prácticas de laboratorio grabadas en la universidad para consulta y estudio asincrónico (no son transmisiones en vivo). Selecciona tu programa para ver la videoteca disponible.',
+    trustTexto: 'Grabaciones propias de la universidad, organizadas por programa académico • 2025'
+  }
+};
+
+function aplicarTextosColeccion() {
+  const t = TEXTOS_COLECCION[COLECCION];
+  document.title = t.tituloDoc;
+  const set = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
+  set('topBadgeText', t.topBadgeTexto);
+  set('heroBadgeText', t.heroBadgeTexto);
+  set('heroTitleWord', t.heroTituloPalabra);
+  set('heroDescription', t.heroDescripcion);
+  set('trustText', t.trustTexto);
+  const icono = document.getElementById('heroBadgeIcon');
+  if (icono) icono.className = `fa-solid ${t.heroBadgeIcono} text-black`;
+}
 
 // Íconos representativos por programa (fallback genérico si no hay coincidencia)
 const ICONOS_PROGRAMA = {
@@ -98,10 +142,21 @@ function esperarDatos(leer, alListo, alFallar) {
   })();
 }
 
-// Todos los programas a los que aplica un laboratorio (mismo criterio de
-// separación usado en toda la cadena: coma o punto y coma).
+// Solo los laboratorios de la colección elegida (Externos o Vivos). Los
+// registros históricos de Datos/General-labs.json no traen 'tipo' — se
+// cuentan como 'externo' por compatibilidad (ver README.md).
+function filtrarPorColeccion(laboratorios) {
+  if (COLECCION === 'vivo') return laboratorios.filter(lab => lab && lab.tipo === 'vivo');
+  return laboratorios.filter(lab => lab && (lab.tipo === 'externo' || lab.tipo === undefined));
+}
+
+// Todos los programas a los que aplica un laboratorio. Los registros
+// históricos (sin 'tipo') traen varios programas juntos en "Programa(s)";
+// el esquema nuevo (con 'tipo') trae un único "programa" por ítem — se
+// separa igual por coma/punto y coma por si algún día trae más de uno.
 function programasDeLab(lab) {
-  return (lab['Programa(s)'] || '')
+  const fuente = lab.tipo ? (lab.programa || '') : (lab['Programa(s)'] || '');
+  return fuente
     .split(/[,;]/)
     .map(p => p.trim())
     .filter(Boolean);
@@ -109,19 +164,31 @@ function programasDeLab(lab) {
 
 function construirTarjetaPrograma(programa, laboratorios) {
   const icono = ICONOS_PROGRAMA[programa] || ICONO_DEFAULT;
-
-  // Orígenes / plataformas únicos de los laboratorios de este programa
-  const origenes = [];
-  laboratorios.forEach(lab => {
-    const origen = (lab['Origen / Plataforma'] || '').trim();
-    if (origen && !origenes.includes(origen)) origenes.push(origen);
-  });
-  const textoOrigenes = origenes.length
-    ? `En este programa puedes encontrar laboratorios de: ${origenes.join(', ')}. Entra para descubrir qué ofrecemos.`
-    : 'Próximamente encontrarás aquí laboratorios externos disponibles para este programa.';
-
   const totalLabs = laboratorios.length;
-  const textoConteo = `${totalLabs} Laboratorio${totalLabs === 1 ? '' : 's'} Disponible${totalLabs === 1 ? '' : 's'}`;
+  const unidad = COLECCION === 'vivo' ? 'Video' : 'Laboratorio';
+  const textoConteo = `${totalLabs} ${unidad}${totalLabs === 1 ? '' : 's'} Disponible${totalLabs === 1 ? '' : 's'}`;
+
+  let textoDescripcion;
+  if (COLECCION === 'vivo') {
+    const materias = [];
+    laboratorios.forEach(lab => {
+      const materia = (lab.materia || '').trim();
+      if (materia && !materias.includes(materia)) materias.push(materia);
+    });
+    textoDescripcion = materias.length
+      ? `Videoteca de prácticas de: ${materias.join(', ')}. Entra para ver las grabaciones disponibles.`
+      : 'Próximamente encontrarás aquí prácticas grabadas disponibles para este programa.';
+  } else {
+    // Orígenes / plataformas únicos de los laboratorios de este programa
+    const origenes = [];
+    laboratorios.forEach(lab => {
+      const origen = (lab['Origen / Plataforma'] || lab.docenteFuente || '').trim();
+      if (origen && !origenes.includes(origen)) origenes.push(origen);
+    });
+    textoDescripcion = origenes.length
+      ? `En este programa puedes encontrar laboratorios de: ${origenes.join(', ')}. Entra para descubrir qué ofrecemos.`
+      : 'Próximamente encontrarás aquí laboratorios externos disponibles para este programa.';
+  }
 
   return `
       <div class="bg-white border-2 border-black rounded-xl p-6 flex flex-col justify-between text-black transition-none">
@@ -133,37 +200,75 @@ function construirTarjetaPrograma(programa, laboratorios) {
             <span class="px-3 py-1 rounded-md bg-white border-2 border-black text-black text-xs font-bold uppercase">Programas</span>
           </div>
           <h2 class="text-xl font-bold text-black mb-2">${escapeHtml(programa)}</h2>
-          <p class="text-black text-sm leading-relaxed mb-6 font-normal">${escapeHtml(textoOrigenes)}</p>
+          <p class="text-black text-sm leading-relaxed mb-6 font-normal">${escapeHtml(textoDescripcion)}</p>
         </div>
         <div class="pt-4 border-t-2 border-black flex items-center justify-between text-xs">
-          <div class="flex items-center gap-2 text-black font-semibold"><i class="fa-solid fa-flask-vial"></i><span>${textoConteo}</span></div>
+          <div class="flex items-center gap-2 text-black font-semibold"><i class="fa-solid ${COLECCION === 'vivo' ? 'fa-circle-play' : 'fa-flask-vial'}"></i><span>${textoConteo}</span></div>
           <a class="inline-flex items-center gap-1.5 font-bold text-black hover:underline" href="catalogo.html" data-programa="${escapeHtml(programa)}"><span>Ingresar</span><i class="fa-solid fa-chevron-right text-[11px]"></i></a>
         </div>
       </div>`;
 }
 
-// Convierte los labs (tal cual vienen de General-labs.json) al contrato de
-// datos del visor (ver visor/README.md): objeto raíz + items[] tipados.
-// Esto es lo único que catalogo.html recibe — nunca ve el JSON crudo.
-function construirPayloadVisor(programa, laboratorios) {
+// Convierte los labs (tal cual vienen de General-labs.json, o del esquema
+// nuevo con 'tipo') al contrato de datos del visor (ver visor/README.md):
+// objeto raíz + items[] tipados. Esto es lo único que catalogo.html
+// recibe — nunca ve el JSON crudo.
+function construirPayloadVisorVivo(programa, laboratorios) {
+  const materias = [];
+  laboratorios.forEach(lab => {
+    const materia = (lab.materia || '').trim();
+    if (materia && !materias.includes(materia)) materias.push(materia);
+  });
+  const descripcion = materias.length
+    ? `Videoteca de prácticas grabadas de ${programa}: ${materias.join(', ')}. Selecciona cualquiera para ver el video completo.`
+    : '';
+
+  return {
+    titulo: `Laboratorios Vivos de ${programa}`,
+    subtitulo: 'Videoteca de Prácticas de Laboratorio',
+    descripcion,
+    volver_url: 'programa.html?coleccion=vivo',
+    pie: 'Laboratorios vivos grabados en la universidad • Universidad INCCA de Colombia',
+    items: laboratorios.map((lab, idx) => ({
+      id: `vivo-${Number.isFinite(lab.item) ? lab.item : idx + 1}`,
+      tipo: 'vivo',
+      visible: true,
+      orden: idx,
+      item: lab.item,
+      nombre: lab.nombre || '',
+      programa: lab.programa || '',
+      materia: lab.materia || '',
+      transversalidad: lab.transversalidad || '',
+      descripcion: lab.descripcion || '',
+      videoUrl: lab.videoUrl || '',
+      docenteFuente: lab.docenteFuente || ''
+    }))
+  };
+}
+
+function construirPayloadVisorExterno(programa, laboratorios) {
   return {
     titulo: `Laboratorios de ${programa}`,
     subtitulo: 'Red de Convenios & Plataformas Externas',
     descripcion: '',
     volver_url: 'programa.html',
     items: laboratorios.map((lab, idx) => ({
-      // Number.isFinite (no solo != null): si "No." llegara vacío o con un
-      // valor no numérico, cada item igual necesita un id único dentro de
-      // ESTE payload (basta con eso, no tiene que ser único en todo el JSON).
-      id: `lab-${Number.isFinite(lab['No.']) ? lab['No.'] : idx + 1}`,
+      // Prefijo distinto por rama de origen ('lab-' vs 'lab-item-'): un
+      // laboratorio nuevo (esquema con 'tipo', identificado por 'item') y uno
+      // histórico (identificado por "No.") pueden compartir el mismo número
+      // de posición dentro de ESTE programa filtrado — con un solo prefijo
+      // ambos calculan el mismo id y el modal abriría el ítem equivocado.
+      id: Number.isFinite(lab['No.'])
+        ? `lab-${lab['No.']}`
+        : (Number.isFinite(lab.item) ? `lab-item-${lab.item}` : `lab-idx-${idx + 1}`),
       tipo: 'laboratorio',
       visible: true,
       orden: idx,
-      nombre: lab['Nombre del Laboratorio'] || '',
+      nombre: lab['Nombre del Laboratorio'] || lab.nombre || '',
       categoria: lab['Categoría'] || '',
-      origen: lab['Origen / Plataforma'] || '',
-      aplicaA: lab['Aplica a'] || '',
-      descripcion: lab['Descripción '] || '',
+      origen: lab['Origen / Plataforma'] || lab.docenteFuente || '',
+      aplicaA: lab['Aplica a'] || lab.transversalidad || '',
+      descripcion: lab['Descripción '] || lab.descripcion || '',
       materias: lab['Materias'] || '',
       modalidad: lab['Compatible con Moodle'] || '',
       costo: lab['Costo'] || '',
@@ -171,6 +276,12 @@ function construirPayloadVisor(programa, laboratorios) {
       imagen: lab['imagen'] || ''
     }))
   };
+}
+
+function construirPayloadVisor(programa, laboratorios) {
+  return COLECCION === 'vivo'
+    ? construirPayloadVisorVivo(programa, laboratorios)
+    : construirPayloadVisorExterno(programa, laboratorios);
 }
 
 function renderCargando() {
@@ -184,12 +295,21 @@ function renderSinDatos() {
   </p>`;
 }
 
-function renderConDatos(laboratorios) {
+function renderConDatos(laboratoriosCrudos) {
   const grid = document.getElementById('programsGrid');
+  const laboratorios = filtrarPorColeccion(laboratoriosCrudos);
 
-  // Programas únicos, derivados de "Programa(s)" en cada laboratorio —
-  // ordenados alfabéticamente, sin depender de ningún archivo aparte.
+  // Programas únicos, derivados de "Programa(s)" (o "programa") en cada
+  // laboratorio de ESTA colección — ordenados alfabéticamente, sin depender
+  // de ningún archivo aparte.
   const programas = [...new Set(laboratorios.flatMap(programasDeLab))].sort((a, b) => a.localeCompare(b, 'es'));
+
+  if (!programas.length) {
+    grid.innerHTML = `<p class="col-span-full text-center text-black font-semibold text-sm py-8">
+      Todavía no hay ${COLECCION === 'vivo' ? 'laboratorios vivos' : 'laboratorios externos'} cargados para ningún programa.
+    </p>`;
+    return;
+  }
 
   const labsPorPrograma = new Map();
   programas.forEach(programa => {
@@ -212,5 +332,6 @@ function renderConDatos(laboratorios) {
   });
 }
 
+aplicarTextosColeccion();
 renderCargando();
 esperarDatos(leerEntrada, renderConDatos, renderSinDatos);

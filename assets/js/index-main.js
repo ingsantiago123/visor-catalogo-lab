@@ -8,10 +8,13 @@
 // programa.html), así que esa pantalla lee EL MISMO valor sin que nadie
 // tenga que volver a dejarlo.
 //
-// Vivos y Propios no tienen ninguna fuente de datos todavía, así que se
-// muestran como placeholders fijos "Próximamente" — no hay ningún dato que
-// derivar para ellos (distinto de inventar un texto pretendiendo que sí lo
-// hay, que es lo que se evita acá).
+// Cada laboratorio del array trae (o no) un campo 'tipo': 'externo' | 'vivo'
+// | 'propio'. Los datos históricos (Datos/General-labs.json) no tienen ese
+// campo — se tratan como 'externo' por compatibilidad, nunca se descartan.
+// Vivos se activa solo si el array trae al menos un ítem con tipo 'vivo';
+// Propios sigue sin fuente de datos, así que se muestra como "Próximamente"
+// — no hay ningún dato que derivar para ella (distinto de inventar un texto
+// pretendiendo que sí lo hay, que es lo que se evita acá).
 
 function escapeHtml(str) {
   return String(str == null ? '' : str)
@@ -115,6 +118,23 @@ function renderTarjetaExternos(totalLabs) {
 </div>`;
 }
 
+function renderTarjetaVivos(totalVideos) {
+  const conteoTexto = `${totalVideos} Video${totalVideos === 1 ? '' : 's'} Disponible${totalVideos === 1 ? '' : 's'}`;
+  return `
+<div class="collection-card">
+  <div>
+    <div class="collection-card__icon"><span class="material-symbols-outlined">videocam</span></div>
+    <span class="collection-card__badge collection-card__badge--solid">Activo</span>
+    <h2 class="collection-card__title">Laboratorios Vivos</h2>
+    <p class="collection-card__desc">Prácticas de laboratorio grabadas en la universidad para consulta y estudio asincrónico, organizadas por programa.</p>
+  </div>
+  <div class="collection-card__footer">
+    <span class="collection-card__count"><span class="material-symbols-outlined"></span>${escapeHtml(conteoTexto)}</span>
+    <a class="collection-card__cta" href="programa.html?coleccion=vivo">Ingresar <span class="material-symbols-outlined" style="font-size:1rem;">arrow_forward</span></a>
+  </div>
+</div>`;
+}
+
 function renderTarjetaInactiva(icono, titulo, descripcion) {
   return `
 <div class="collection-card collection-card--inactive">
@@ -150,12 +170,17 @@ function renderSinDatos() {
 }
 
 function renderConDatos(laboratorios) {
+  const totalExternos = laboratorios.filter(lab => lab && (lab.tipo === 'externo' || lab.tipo === undefined)).length;
+  const totalVivos = laboratorios.filter(lab => lab && lab.tipo === 'vivo').length;
+
   document.getElementById('app').innerHTML = `
 <div class="app-shell">
   ${renderCabecera()}
   <div class="labs-grid">
-    ${renderTarjetaExternos(laboratorios.length)}
-    ${renderTarjetaInactiva('videocam', 'Laboratorios Vivos', 'Prácticas de laboratorio grabadas en la universidad para consulta y estudio asincrónico.')}
+    ${renderTarjetaExternos(totalExternos)}
+    ${totalVivos > 0
+      ? renderTarjetaVivos(totalVivos)
+      : renderTarjetaInactiva('videocam', 'Laboratorios Vivos', 'Prácticas de laboratorio grabadas en la universidad para consulta y estudio asincrónico.')}
     ${renderTarjetaInactiva('science', 'Laboratorios Propios', 'Aplicativos y espacios desarrollados directamente por la Universidad INCCA para sus estudiantes.')}
   </div>
   <div class="app-footer">Selecciona una colección para ver sus programas y laboratorios &bull; Universidad INCCA de Colombia</div>

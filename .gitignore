@@ -1,0 +1,4 @@
+# Banco de pruebas local: embebe los 132 laboratorios reales completos en un
+# atributo HTML a mano (pesa ~300KB) — es solo para probar en local con Live
+# Server, no debe vivir en este repo (que es el que se publica en Pages).
+prueba.html

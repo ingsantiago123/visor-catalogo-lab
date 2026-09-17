@@ -11,15 +11,17 @@
   'use strict';
 
   // ---------------------------------------------------------------------
-  // Contrato de datos: tipo único 'laboratorio' por ahora (extensible).
+  // Contrato de datos: 'laboratorio' (Externos/Propios) y 'vivo' (Vivos).
+  // Agregar un tipo nuevo = sumarlo acá + a DEFAULTS_POR_TIPO + a RENDERERS.
   // ---------------------------------------------------------------------
-  const TIPOS_VALIDOS = ['laboratorio'];
+  const TIPOS_VALIDOS = ['laboratorio', 'vivo'];
 
   const SIN_DATOS = {
     titulo: 'Visor',
     subtitulo: '',
     descripcion: '',
     volver_url: '', // sin anfitrión conocido: no se asume ninguna ruta ajena
+    pie: 'Universidad INCCA de Colombia',
     items: []
   };
 
@@ -35,6 +37,16 @@
       costo: '—',
       link: '',
       imagen: ''
+    },
+    vivo: {
+      item: null,
+      nombre: 'Laboratorio en vivo sin nombre',
+      programa: '',
+      materia: '',
+      transversalidad: '',
+      descripcion: 'Descripción no disponible.',
+      videoUrl: '',
+      docenteFuente: 'Fuente no especificada'
     }
   };
 
@@ -107,18 +119,19 @@
       orden: Number.isFinite(r.orden) ? r.orden : idx
     };
 
-    const cuerpo = {
-      nombre: r.nombre || def.nombre,
-      categoria: r.categoria || def.categoria,
-      origen: r.origen || def.origen,
-      aplicaA: r.aplicaA || def.aplicaA,
-      descripcion: r.descripcion || def.descripcion,
-      materias: r.materias || def.materias,
-      modalidad: r.modalidad || def.modalidad,
-      costo: r.costo || def.costo,
-      link: r.link || def.link,
-      imagen: r.imagen || def.imagen
-    };
+    const cuerpo = {};
+    Object.keys(def).forEach(campo => {
+      const valor = r[campo];
+      cuerpo[campo] = (valor || valor === 0) ? valor : def[campo];
+    });
+
+    if (tipo === 'vivo') {
+      cuerpo.item = Number.isFinite(r.item) ? r.item : idx + 1;
+      // 'vivo' no tiene 'categoria' propia (usa 'materia'): se alía acá para
+      // que la barra de filtros y el conteo por categoría (genéricos, sin
+      // conocer tipos) sigan funcionando igual para cualquier tipo de ítem.
+      cuerpo.categoria = cuerpo.materia || 'General';
+    }
 
     return Object.assign(base, cuerpo);
   }
@@ -130,6 +143,7 @@
       subtitulo: recibido.subtitulo || SIN_DATOS.subtitulo,
       descripcion: recibido.descripcion || SIN_DATOS.descripcion,
       volver_url: recibido.volver_url || SIN_DATOS.volver_url,
+      pie: recibido.pie || SIN_DATOS.pie,
       items: (Array.isArray(recibido.items) ? recibido.items : SIN_DATOS.items)
         .map(mergeItem)
         .filter(Boolean)
@@ -196,8 +210,44 @@
 </article>`;
   }
 
+  // 'vivo' no abre modal: al hacer clic navega a video.html, su propia
+  // página (ver abrirFicha/irAVideoVivo) — por eso, a diferencia de la
+  // tarjeta 'laboratorio', no lleva aria-haspopup="dialog".
+  function renderVivoCard(item) {
+    const catKey = slugify(item.categoria);
+    const esTransversal = item.transversalidad === 'Transversal';
+    return `
+<article class="lab-card" data-item="${escapeHtml(item.id)}" data-category="${catKey}" tabindex="0" role="link">
+  <div>
+    <div class="lab-card__thumb">
+      <div class="lab-card__placeholder">
+        <span class="material-symbols-outlined">smart_display</span>
+        <span class="label">[ PRÁCTICA ${escapeHtml(String(item.item))} ]</span>
+      </div>
+      <span class="lab-card__origin-badge">${esTransversal ? 'Transversal' : 'Específico'}</span>
+      <span class="lab-card__view-badge"><span class="material-symbols-outlined">play_circle</span> Ver Video</span>
+    </div>
+    <div class="lab-card__body">
+      <div class="lab-card__meta">
+        <span class="lab-card__category">${escapeHtml(item.materia)}</span>
+        <span class="lab-card__tag">${escapeHtml(item.programa)}</span>
+      </div>
+      <h3 class="lab-card__title">${escapeHtml(item.nombre)}</h3>
+      <p class="lab-card__desc">${escapeHtml(item.descripcion)}</p>
+    </div>
+  </div>
+  <div class="lab-card__footer">
+    <div class="lab-card__footer-inner">
+      <span>${escapeHtml(item.docenteFuente)}</span>
+      <span class="lab-card__explore">Ver Video →</span>
+    </div>
+  </div>
+</article>`;
+  }
+
   const RENDERERS = {
-    laboratorio: renderLaboratorioCard
+    laboratorio: renderLaboratorioCard,
+    vivo: renderVivoCard
   };
 
   function construirBarraCategorias(items) {
@@ -221,13 +271,17 @@
   // reales de los items recibidos (mismo criterio que usaba el catálogo).
   function construirTextoDescripcion(datos) {
     if (datos.descripcion && datos.descripcion.trim()) return datos.descripcion;
+    if (!datos.items.length) return 'Todavía no hay laboratorios cargados para este contenido.';
 
+    // 'origen' es propio de 'laboratorio' (Externos/Propios); otros tipos
+    // (como 'vivo') no lo tienen. Sin 'origen' que listar, una frase neutra
+    // por cantidad de ítems — nunca la de "no hay nada" habiendo contenido.
     const origenes = [];
     datos.items.forEach(it => {
       if (it.origen && !origenes.includes(it.origen)) origenes.push(it.origen);
     });
     if (!origenes.length) {
-      return 'Todavía no hay laboratorios cargados para este contenido.';
+      return `Explora los ${datos.items.length} ítem${datos.items.length === 1 ? '' : 's'} disponibles en esta sección. Selecciona cualquiera para ver su ficha completa.`;
     }
     const lista = origenes.length > 1
       ? origenes.slice(0, -1).join(', ') + ' y ' + origenes[origenes.length - 1]
@@ -325,7 +379,7 @@
     shell.insertAdjacentHTML('beforeend', `<div class="labs-grid" id="labsGrid">${gridHtml}</div>`);
 
     shell.insertAdjacentHTML('beforeend',
-      '<div class="app-footer">Laboratorios externos con acceso remoto &bull; Universidad INCCA de Colombia</div>');
+      `<div class="app-footer">${escapeHtml(datos.pie)}</div>`);
 
     app.insertAdjacentHTML('beforeend', renderModalShell());
 
@@ -389,10 +443,51 @@
     }
   }
 
+  // Respaldo del payload de ESTE catálogo (en sessionStorage de esta misma
+  // pestaña) antes de reemplazar window.name para ir a video.html — mismo
+  // patrón que usan index.html/programa.html para que "Volver" no pierda
+  // los datos (ver "Volver sin perder los datos" en README.md).
+  const CLAVE_RESPALDO_CATALOGO = 'visorCatalogoRespaldo';
+
   function abrirFicha(id, datos) {
     const item = datos.items.find(it => it.id === id);
     if (!item) return;
+    if (item.tipo === 'vivo') {
+      irAVideoVivo(item);
+      return;
+    }
     openLabModal(item);
+  }
+
+  function irAVideoVivo(item) {
+    try { sessionStorage.setItem(CLAVE_RESPALDO_CATALOGO, window.name); } catch (e) { /* sin storage disponible, no pasa nada */ }
+    window.name = JSON.stringify({
+      item: item.item,
+      nombre: item.nombre,
+      programa: item.programa,
+      materia: item.materia,
+      transversalidad: item.transversalidad,
+      descripcion: item.descripcion,
+      videoUrl: item.videoUrl,
+      docenteFuente: item.docenteFuente,
+      volver_url: 'catalogo.html'
+    });
+    window.location.href = 'video.html';
+  }
+
+  function llenarChips(container, valores, textoVacio) {
+    container.innerHTML = '';
+    const limpios = valores.filter(Boolean);
+    if (!limpios.length) {
+      container.innerHTML = `<span class="chip">${escapeHtml(textoVacio)}</span>`;
+      return;
+    }
+    limpios.forEach(v => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = v;
+      container.appendChild(chip);
+    });
   }
 
   function openLabModal(item) {
@@ -400,6 +495,10 @@
     document.getElementById('modalCategoryBadge').textContent = item.categoria;
     document.getElementById('modalLocationText').textContent = item.origen;
     document.getElementById('modalDescription').textContent = item.descripcion;
+
+    const materias = item.materias ? item.materias.split(';').map(m => m.trim()) : [];
+    llenarChips(document.getElementById('modalMateriasList'), materias, 'Sin materias registradas');
+
     document.getElementById('modalModalidad').textContent = item.modalidad || '—';
     document.getElementById('modalCosto').textContent = item.costo || '—';
     document.getElementById('modalTransversal').textContent =
@@ -423,22 +522,6 @@
     } else {
       resourceLink.removeAttribute('href');
       resourceLink.style.display = 'none';
-    }
-
-    const materiasContainer = document.getElementById('modalMateriasList');
-    materiasContainer.innerHTML = '';
-    const materias = item.materias
-      ? item.materias.split(';').map(m => m.trim()).filter(Boolean)
-      : [];
-    if (materias.length) {
-      materias.forEach(m => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = m;
-        materiasContainer.appendChild(chip);
-      });
-    } else {
-      materiasContainer.innerHTML = '<span class="chip">Sin materias registradas</span>';
     }
 
     const modal = document.getElementById('labModal');
