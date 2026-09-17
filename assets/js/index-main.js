@@ -84,12 +84,15 @@ function esperarDatos(leer, alListo, alFallar) {
 }
 
 function renderCabecera() {
+  // Pantalla 1 es la puerta de entrada del visor: a diferencia de las otras
+  // 3 pantallas (que nunca asumen un host, ver README.md), esta SÍ tenía
+  // hardcodeado un link a "../index.html" asumiendo un sitio padre por
+  // encima del visor. Ese padre no existe cuando el visor se despliega
+  // solo (ver visor-catalogo-lab), así que el link rompía ahí — se saca
+  // del todo en vez de intentar adivinar a dónde volver.
   return `
 <div class="topbar">
-  <a class="topbar__back" href="../index.html">
-    <span class="material-symbols-outlined" style="font-size:1rem;">arrow_back</span>
-    <span>Volver a Inicio</span>
-  </a>
+  <span></span>
   <div class="topbar__badge">
     <span style="width:.5rem;height:.5rem;border-radius:9999px;background:#000;display:inline-block;"></span>
     <span>Selección de Colección</span>
@@ -160,12 +163,14 @@ function renderCargando() {
 }
 
 function renderSinDatos() {
-  // Se entró directo a esta pantalla, sin pasar por el index general del
-  // sitio (que es quien deja los datos en window.name). Nunca en blanco.
+  // Se entró directo a esta pantalla, sin pasar por ningún anfitrión que
+  // deje los datos en window.name. Nunca en blanco — pero tampoco se
+  // asume un "inicio" al que volver (ver renderCabecera()): un link roto
+  // es peor que no mostrar ninguno.
   document.getElementById('app').innerHTML = `
 <div class="app-shell">
   ${renderCabecera()}
-  <p class="state-message">No hay datos cargados. <a href="../index.html" style="text-decoration:underline;">Volvé al inicio</a> para entrar de nuevo.</p>
+  <p class="state-message">No hay datos cargados todavía.</p>
 </div>`;
 }
 
